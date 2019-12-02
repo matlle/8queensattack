@@ -1,0 +1,3 @@
+/home/matlle/projects/c++/modeling_simulation/8queens/cmake-build-debug/CMakeFiles/rebuild_cache.dir
+/home/matlle/projects/c++/modeling_simulation/8queens/cmake-build-debug/CMakeFiles/8queens.dir
+/home/matlle/projects/c++/modeling_simulation/8queens/cmake-build-debug/CMakeFiles/edit_cache.dir
