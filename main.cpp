@@ -1,5 +1,4 @@
 #include <iostream>
-#include <vector>
 
 #define GENOME_LENGTH 8
 #define MAX_ATTACKS 28
@@ -21,82 +20,76 @@ void createRandomGene(Individual *);
 void countAttacks(Individual *);
 void displayChessBoardByIndividual(const Individual *);
 void computeAllFitnessSubintervals(Individual **);
-bool isMatingPoolFull(Individual **);
 void rouletteWheelSelection(Individual **, Individual **);
 void crossover(Individual **, Individual **);
 void mutation(Individual **);
 Individual *foundFittestIndividual(Individual **population);
 
 int main() {
-    srand(time(NULL));
+    srand(time(nullptr));
     std::cout << "[==== 8 Queens attack problem ====]" << std::endl;
     do {
         std::cout << "Enter an number of individuals: ";
         std::cin >> N;
-        std::cout << "Enter the probability of mutation: ";
+        std::cout << "Enter the probability of mutation (ex. 0.005): ";
         std::cin >> PM;
     } while (N & 1); // N should be an even number
-    Individual *population[N];
-    Individual *matingPool[N];
-    //std::vector<Individual *> matingPool;
-    Individual *fittestIndividual = nullptr;
+    Individual *population[N]; // Population of individuals
+    Individual *matingPool[2]; // Mating pool
+    Individual *fittestIndividual = nullptr; // Final fittest individual with fitness = 28
+    int ng = 1; // Number of generations
 
     for(int i = 0; i < N; i++) {
         population[i] = new Individual;
         createRandomGene(population[i]);
         countAttacks(population[i]);
         population[i]->fitness = MAX_ATTACKS - population[i]->number_of_attacks;
+        if(population[i]->fitness == MAX_ATTACKS) {
+            fittestIndividual = population[i];
+            break;
+        }
         std::cout << "G(" << i << "): " << population[i]->gene_str << " ; Noa = " << population[i]->number_of_attacks << " ; Fitness = " << population[i]->fitness << std::endl;
         displayChessBoardByIndividual(population[i]);
         std::cout << std::endl;
     }
 
-    do {
+    while(fittestIndividual == nullptr) {
         computeAllFitnessSubintervals(population);
         rouletteWheelSelection(population, matingPool);
         crossover(matingPool, population);
+        if((fittestIndividual = foundFittestIndividual(population)) != nullptr) break;
+        mutation(matingPool);
         computeAllFitnessSubintervals(population);
         fittestIndividual = foundFittestIndividual(population);
-        if(fittestIndividual != nullptr) {
-            break;
-        }
-        mutation(population);
-        computeAllFitnessSubintervals(population);
-    } while ((fittestIndividual = foundFittestIndividual(population)) == nullptr);
+        ng++;
+    }
 
-    std::cout << "Found fittest individual: " << fittestIndividual << std::endl;
+    std::cout << "[+] Found fittest individual: " << fittestIndividual << "; Noa (number of attacks): " << fittestIndividual->number_of_attacks << "; Fitness: " << fittestIndividual->fitness << "; Genes: " << fittestIndividual->gene_str << std::endl;
+    std::cout << std::endl;
+    displayChessBoardByIndividual(fittestIndividual);
+    std::cout << "\n[+] Fittest individual found after " << ng << " generations" << std::endl;
 
     return 0;
 }
 
-bool isMatingPoolFull(Individual **matingPool) {
-    bool r = true;
-    for(int i = 0; i < N; i++) {
-        if(matingPool[i] == nullptr) {
-            r = false;
-            break;
-        }
-    }
-    return r;
-}
-
 void rouletteWheelSelection(Individual **population, Individual **matingPool) {
+    std::cout << "[-] Roulette wheel selection..." << std::endl;
     int c = 0;
     do {
-        std::cout << "Roulette wheel selection..." << std::endl;
         int random = rand() % F;
         for(int i = 0; i < N; i++) {
             if(random >= population[i]->fitness_subinterval_from && random < population[i]->fitness_subinterval_to) {
                 matingPool[c] = population[i];
                 c++;
+                if(c >= 2) break;
             }
         }
-    } while(isMatingPoolFull(matingPool));
+    } while(c < 2);
 }
 
 void crossover(Individual **matingPool, Individual **population) {
-    std::cout << "Crossover..." << std::endl;
-    for(int i = 0; i <= N / 2; i += 2) {
+    std::cout << "[-] Crossover..." << std::endl;
+    for(int i = 0; i < 1; i++) {
         int crosssite = rand() % GENOME_LENGTH + 1;
         for(int g = GENOME_LENGTH - 1; g > crosssite; g--) {
             int t = matingPool[i]->gene[g];
@@ -118,20 +111,13 @@ void crossover(Individual **matingPool, Individual **population) {
         matingPool[i]->fitness = MAX_ATTACKS - matingPool[i]->number_of_attacks;
         matingPool[i + 1]->fitness = MAX_ATTACKS - matingPool[i + 1]->number_of_attacks;
     }
-    for(int i = 0; i < N; i++) {
-        for(int j = 0; j < N; j++) {
-            if(population[j]->fitness < matingPool[i]->fitness) {
-                population[j] = matingPool[i];
-                break;
-            }
-        }
-    }
+    computeAllFitnessSubintervals(population);
 }
 
 void mutation(Individual **matingPool) {
-    std::cout << "Mutation..." << std::endl;
+    std::cout << "[-] Mutation..." << std::endl;
     int r = rand() % (int)(1 / PM) + 1;
-    for(int i = 0; i < N; i++) {
+    for(int i = 0; i < 2; i++) {
         bool geneMutated = false;
         for(int j = 0; j < GENOME_LENGTH; j++) {
             int r1 = rand() % (int)(1 / PM) + 1;
@@ -143,24 +129,14 @@ void mutation(Individual **matingPool) {
         }
         if(geneMutated) {
             matingPool[i]->gene_str = "";
-            for(int i = 0; i < GENOME_LENGTH; i++) {
-                matingPool[i]->gene_str += std::to_string(matingPool[i]->gene[i]) + "-";
+            for(int g = 0; g < GENOME_LENGTH; g++) {
+                matingPool[i]->gene_str += std::to_string(matingPool[i]->gene[g]) + "-";
             }
+            matingPool[i]->gene_str = matingPool[i]->gene_str.substr(0, matingPool[i]->gene_str.size() - 1);
+            countAttacks(matingPool[i]);
+            matingPool[i]->fitness = MAX_ATTACKS - matingPool[i]->number_of_attacks;
         }
     }
-    /*Individual *individual = matingPool[r];
-    if(individual != nullptr) {
-        int r1 = rand() % GENOME_LENGTH;
-        int r2 = rand() % GENOME_LENGTH + 1;
-        individual->gene[r1] = r2;
-        individual->gene_str = "";
-        for(int i = 0; i < GENOME_LENGTH; i++) {
-            individual->gene_str += std::to_string(individual->gene[i]) + "-";
-        }
-        individual->gene_str = individual->gene_str.substr(0, individual->gene_str.size() - 1);
-        countAttacks(individual);
-        individual->fitness = MAX_ATTACKS - individual->number_of_attacks;
-    }*/
 }
 
 Individual *foundFittestIndividual(Individual **population) {
@@ -198,6 +174,7 @@ void createRandomGene(Individual *individual) {
 }
 
 void countAttacks(Individual *individual) {
+    individual->number_of_attacks = 0;
     for(int i = 0; i < GENOME_LENGTH; i++) {
         for(int j = i + 1; j < GENOME_LENGTH; j++) {
             if(individual->gene[i] == individual->gene[j]) individual->number_of_attacks++;
