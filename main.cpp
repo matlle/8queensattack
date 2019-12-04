@@ -89,28 +89,26 @@ void rouletteWheelSelection(Individual **population, Individual **matingPool) {
 
 void crossover(Individual **matingPool, Individual **population) {
     std::cout << "[-] Crossover..." << std::endl;
-    for(int i = 0; i < 1; i++) {
-        int crosssite = rand() % GENOME_LENGTH + 1;
-        for(int g = GENOME_LENGTH - 1; g > crosssite; g--) {
-            int t = matingPool[i]->gene[g];
-            matingPool[i]->gene[g] = matingPool[i + 1]->gene[g];
-            matingPool[i + 1]->gene[g] = t;
-        }
-        matingPool[i]->gene_str = "";
-        matingPool[i + 1]->gene_str = "";
-        for(int g = 0; g < GENOME_LENGTH; g++) {
-            matingPool[i]->gene_str += std::to_string(matingPool[i]->gene[g]) + "-";
-        }
-        matingPool[i]->gene_str = matingPool[i]->gene_str.substr(0, matingPool[i]->gene_str.size() - 1);
-        for(int g = 0; g < GENOME_LENGTH; g++) {
-            matingPool[i + 1]->gene_str += std::to_string(matingPool[i + 1]->gene[g]) + "-";
-        }
-        matingPool[i + 1]->gene_str = matingPool[i + 1]->gene_str.substr(0, matingPool[i + 1]->gene_str.size() - 1);
-        countAttacks(matingPool[i]);
-        countAttacks(matingPool[i + 1]);
-        matingPool[i]->fitness = MAX_ATTACKS - matingPool[i]->number_of_attacks;
-        matingPool[i + 1]->fitness = MAX_ATTACKS - matingPool[i + 1]->number_of_attacks;
+    int crosssite = rand() % GENOME_LENGTH + 1;
+    for(int g = GENOME_LENGTH - 1; g > crosssite; g--) {
+        int t = matingPool[0]->gene[g];
+        matingPool[0]->gene[g] = matingPool[1]->gene[g];
+        matingPool[1]->gene[g] = t;
     }
+    matingPool[0]->gene_str = "";
+    matingPool[1]->gene_str = "";
+    for(int g = 0; g < GENOME_LENGTH; g++) {
+        matingPool[0]->gene_str += std::to_string(matingPool[0]->gene[g]) + "-";
+    }
+    matingPool[0]->gene_str = matingPool[0]->gene_str.substr(0, matingPool[0]->gene_str.size() - 1);
+    for(int g = 0; g < GENOME_LENGTH; g++) {
+        matingPool[1]->gene_str += std::to_string(matingPool[1]->gene[g]) + "-";
+    }
+    matingPool[1]->gene_str = matingPool[1]->gene_str.substr(0, matingPool[1]->gene_str.size() - 1);
+    countAttacks(matingPool[0]);
+    countAttacks(matingPool[1]);
+    matingPool[0]->fitness = MAX_ATTACKS - matingPool[0]->number_of_attacks;
+    matingPool[1]->fitness = MAX_ATTACKS - matingPool[1]->number_of_attacks;
     computeAllFitnessSubintervals(population);
 }
 
