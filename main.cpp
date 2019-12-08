@@ -53,6 +53,8 @@ int main() {
         std::cout << std::endl;
     }
 
+    std::cout << "Searching for fittest individual..." << std::endl;
+
     while(fittestIndividual == nullptr) {
         computeAllFitnessSubintervals(population);
         rouletteWheelSelection(population, matingPool);
@@ -73,7 +75,6 @@ int main() {
 }
 
 void rouletteWheelSelection(Individual **population, Individual **matingPool) {
-    std::cout << "[-] Roulette wheel selection..." << std::endl;
     int c = 0;
     do {
         int random = rand() % F;
@@ -88,7 +89,6 @@ void rouletteWheelSelection(Individual **population, Individual **matingPool) {
 }
 
 void crossover(Individual **matingPool, Individual **population) {
-    std::cout << "[-] Crossover..." << std::endl;
     int crosssite = rand() % GENOME_LENGTH + 1;
     for(int g = GENOME_LENGTH - 1; g > crosssite; g--) {
         int t = matingPool[0]->gene[g];
@@ -113,7 +113,6 @@ void crossover(Individual **matingPool, Individual **population) {
 }
 
 void mutation(Individual **matingPool) {
-    std::cout << "[-] Mutation..." << std::endl;
     int r = rand() % (int)(1 / PM) + 1;
     for(int i = 0; i < 2; i++) {
         bool geneMutated = false;
